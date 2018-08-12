@@ -61,7 +61,10 @@ try:
 	try:
 		escribirFtp(res)
 		logging.info('Proceso terminado al 100%')
-		print(str(sys.argv[1])+' '+str(res) )
+		result=res['RestResponse']['result']
+		result='Sin Resultaods' if not result else str(result[0]['alpha2_code'])+','+str(result[0]['alpha3_code'])
+
+		print(str(sys.argv[1])+': '+ result )  
 		
 	except:
 		logger.error('Error escribiendo en el FTP :'+sys.exc_info()[0])
