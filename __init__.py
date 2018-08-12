@@ -4,6 +4,7 @@ import sys
 import logging
 import requests
 import os
+import paramiko
 from datetime import datetime
 from ftplib import FTP
 from configparser import ConfigParser
@@ -33,7 +34,7 @@ def crearArchivoTmp(res):
 	file.close()
 	logging.info('Archivo temporal con respuesta /tmp/responseExperta.txt creado')
 
-def escribirFtp(res):
+def escribirFtp():
 
 	host = config.get("FTP",'hostname')
 	user = config.get("FTP",'user')
@@ -42,10 +43,21 @@ def escribirFtp(res):
 	tp = FTP(host, user, passwd)
 	logging.info('Conetado a FTP '+host)
 	tp.cwd('/home')
-	logging.info('Subiendo Archivo '+'response'+str(sys.argv[1])+'.csv')
+	logging.info('Subiendo Archivo '+'response'+str(sys.argv[1])+'.txt')
 	f = open("/tmp/responseExperta.txt", 'rb')
 	tp.storbinary('STOR '+'response'+str(sys.argv[1])+'.csv', f)
 	logging.info('Archivo se encuentra en el FTP '+host)
+
+def escribirSSH():
+	ssh_client =paramiko.SSHClient()
+	ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	ssh_client.connect(hostname=config.get("SSH",'hostname'),username=config.get("SSH",'user'),password=config.get("SSH",'password'),port=config.getint("SSH",'puerto'))
+	stdin,stdout,stderr=ssh_client.exec_command("ls")
+	print(stdout.readlines()) 	
+	origen='/tmp/responseExperta.txt'
+	detino='/home/response'+str(sys.argv[1])+'.txt'
+	sftp = ssh_client.open_sftp()
+	sftp.put(origen,detino)
 
 
 logging.basicConfig(filename='example.log',datefmt='%m/%d/%Y %I:%M:%S %p',format='%(asctime)s %(levelname)s:%(message)s',level=logging.DEBUG)
@@ -59,15 +71,13 @@ res=buscar()
 try:
 	crearArchivoTmp(res)
 	try:
-		escribirFtp(res)
+		escribirFtp()
+		#escribirSSH()
 		logging.info('Proceso terminado al 100%')
 		result=res['RestResponse']['result']
 		result='Sin Resultaods' if not result else str(result[0]['alpha2_code'])+','+str(result[0]['alpha3_code'])
-
 		print(str(sys.argv[1])+': '+ result )  
-		
 	except:
 		logger.error('Error escribiendo en el FTP :'+sys.exc_info()[0])
 except:
 	logger.error('Error creando archivo temporal :'+sys.exc_info()[0])
-

@@ -1,6 +1,5 @@
   #!/bin/bash 
 limpio=''
-rm -r filelimpioPaises.txt
 rm -r filelimpiolistaNegra.txt
 
 limpiar() {
