@@ -43,7 +43,6 @@ def escribirFtp():
 	tp = FTP(host, user, passwd)
 	logging.info('Conetado a FTP '+host)
 	tp.cwd('/home')
-	print(tp.dir())
 	logging.info('Subiendo Archivo '+'response'+str(sys.argv[1])+'.txt')
 	f = open("/tmp/responseExperta.txt", 'rb')
 	tp.storbinary('STOR '+'response'+str(sys.argv[1])+'.txt', f)
@@ -53,7 +52,6 @@ def escribirSSH():
 	ssh_client =paramiko.SSHClient()
 	ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 	ssh_client.connect(hostname=config.get("SSH",'hostname'),username=config.get("SSH",'user'),password=config.get("SSH",'password'),port=config.getint("SSH",'puerto'))
-	stdin,stdout,stderr=ssh_client.exec_command("cd /home")
 	stdin,stdout,stderr=ssh_client.exec_command("ls")
 	print(stdout.readlines()) 	
 	origen='/tmp/responseExperta.txt'
